@@ -1,6 +1,8 @@
 package com.restapi.springrestapi.config;
 
+import com.restapi.springrestapi.util.AppConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,45 +15,48 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import static com.restapi.springrestapi.util.AppConstants.*;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    public static final String ADMIN_ROLE = "ADMIN";
-    public static final String USER_ROLE = "USER";
-    public static final String POST_PATH = "/api/v1/posts/**";
-    public static final String USERS_PATH = "/users/**";
+
+    @Value("${postsPath}")
+    private String postsPath;
+
+    @Value("${usersPath}")
+    private String usersPath;
+
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers(HttpMethod.DELETE, USERS_PATH, POST_PATH).hasRole(ADMIN_ROLE)
-                .antMatchers(HttpMethod.GET, USERS_PATH, POST_PATH).hasAnyRole(USER_ROLE, ADMIN_ROLE)
-                .antMatchers(HttpMethod.POST, POST_PATH).hasAnyRole(USER_ROLE, ADMIN_ROLE)
-                .antMatchers(HttpMethod.PUT, POST_PATH).hasAnyRole(USER_ROLE, ADMIN_ROLE)
-                .antMatchers("/h2-console/**").permitAll()
+        http.csrf().disable()
+                .headers().frameOptions().sameOrigin()
+                .and()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.DELETE, usersPath, postsPath).hasRole(ADMIN_ROLE)
+                .antMatchers(HttpMethod.GET, usersPath, postsPath).hasAnyRole(USER_ROLE, ADMIN_ROLE)
+                .antMatchers(HttpMethod.POST, postsPath).hasAnyRole(USER_ROLE, ADMIN_ROLE)
+                .antMatchers(HttpMethod.PUT, postsPath).hasAnyRole(USER_ROLE, ADMIN_ROLE)
+                .antMatchers(AUTH_WHITELIST).permitAll()
+                .antMatchers(HttpMethod.POST, "/users").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
                 .httpBasic();
-
-        http.csrf().disable();
-        http.cors().disable();
-        http.headers().frameOptions().disable();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService);
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers(HttpMethod.POST, "/users")
-                .antMatchers("/v3/api-docs/**",
-                "/swagger-ui/**");
+        web.ignoring().antMatchers(HttpMethod.POST, "/users");
     }
 
     @Bean
