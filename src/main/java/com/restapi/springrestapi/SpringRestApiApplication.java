@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 @EnableCaching
-public class SpringRestApiApplication implements CommandLineRunner {
+public class SpringRestApiApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SpringRestApiApplication.class, args);
@@ -18,25 +18,5 @@ public class SpringRestApiApplication implements CommandLineRunner {
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
-    }
-
-    /*@Autowired
-    private PostRepository postRepository;*/
-
-    @Override
-    public void run(String... args) throws Exception {
-/*
-        List<Post> posts = new ArrayList<>();
-        for (int i = 1; i < 10000; i++) {
-            Post post = Post.builder()
-                    .postId((long) i)
-                    .title("Post Title " + i)
-                    .content("Post Content " + i)
-                    .dateAdded(LocalDate.now())
-                    .postCategory(PostCategory.SPORTS).build();
-            posts.add(post);
-        }
-
-        postRepository.saveAll(posts);*/
     }
 }
